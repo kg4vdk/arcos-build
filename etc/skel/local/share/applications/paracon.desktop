@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=PARACON
+GenericName=PARACON
+Comment=Packet Client
+Exec=start-paracon
+Icon=paracon-custom-icon
+Terminal=false
+Type=Application

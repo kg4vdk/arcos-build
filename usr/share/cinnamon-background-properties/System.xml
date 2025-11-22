@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!DOCTYPE wallpapers SYSTEM "cinnamon-wp-list.dtd">
+<wallpapers>
+
+<wallpaper deleted="false">
+    <name>Acadia</name>
+    <filename>/opt/arcOS/backgrounds/releases/Acadia-3840x2160.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>Mike Fisher - KG4VDK</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Bristlecone</name>
+    <filename>/opt/arcOS/backgrounds/releases/Bristlecone-3840x2160.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>Mike Fisher - KG4VDK</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Crater Lake</name>
+    <filename>/opt/arcOS/backgrounds/releases/Crater-Lake-3840x2160.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>Mike Fisher - KG4VDK</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Denali</name>
+    <filename>/opt/arcOS/backgrounds/releases/Denali-3840x2160.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>Tim Rains - NPS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Xanadu</name>
+    <filename>/opt/arcOS/backgrounds/releases/Xanadu-3840x2160.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Blue</name>
+    <filename>/opt/arcOS/backgrounds/arcOS-default-wallpaper-3840x2160-blue.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Olive</name>
+    <filename>/opt/arcOS/backgrounds/arcOS-default-wallpaper-3840x2160-olive.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Red</name>
+    <filename>/opt/arcOS/backgrounds/arcOS-default-wallpaper-3840x2160-red.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Gray</name>
+    <filename>/opt/arcOS/backgrounds/arcOS-default-wallpaper-3840x2160-gray.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+<wallpaper deleted="false">
+    <name>Multi</name>
+    <filename>/opt/arcOS/backgrounds/arcOS-default-wallpaper-3840x2160-multi.jpg</filename>
+    <options>zoom</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#000000</scolor>
+    <artist>arcOS</artist>
+</wallpaper>
+
+</wallpapers>

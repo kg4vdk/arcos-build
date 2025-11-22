@@ -1,0 +1,187 @@
+#!/bin/bash
+
+restore_operator () {
+RESTORE_PATH="/arcHIVE"
+
+# Kill any running CORE module applications
+echo "Closing any relevant applications..."
+killall direwolf ardopcf > /dev/null 2>&1
+killall VARAFM.exe VARA.exe > /dev/null 2>&1
+killall fldigi flamp flmsg flrig rigctl rigctld > /dev/null 2>&1
+killall js8call wsjtx > /dev/null 2>&1
+killall warpinator > /dev/null 2>&1
+killall java > /dev/null 2>&1
+killall qsstv > /dev/null 2>&1
+killall firefox-esr > /dev/null 2>&1
+killall thunderbird > /dev/null 2>&1
+killall gnome-calendar > /dev/null 2>&1
+killall evolution-alarm-notify 2>&1
+killall seahorse > /dev/null 2>&1
+killall kleopatra > /dev/null 2>&1
+killall viking > /dev/null 2>&1
+killall hexchat > /dev/null 2>&1
+pkill -f paracon > /dev/null 2>&1
+pkill -f sticky > /dev/null 2>&1
+sleep 1
+
+BACKUP_FILE=$(yad --title="Restore Operator" \
+--undecorated \
+--window-icon="list-add-symbolic" \
+--dnd \
+--borders=36 \
+--exit-on-drop=1 \
+--no-buttons \
+--tooltip --text="Drag backup file here..." \
+--center \
+--fixed \
+--image-on-top \
+--image=/opt/arcOS/images/restore-operator.png \
+| sed 's/^.......//')
+
+tar -xvaf "${BACKUP_FILE}" \
+-C /tmp backup_info \
+| while echo "#"; read -r line; do echo "# ${line}"; done \
+| yad --progress \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="document-revert-symbolic" \
+--title="Checking backup compatibility..." \
+--text="Checking backup compatibility..." \
+--pulsate \
+--auto-kill \
+--auto-close \
+--no-escape \
+--no-buttons
+
+if [ ! -f /tmp/backup_info ]; then
+	notify-send --icon=error "Restore Failed!" "The backup does not contain a backup_info file."
+	exit 1
+fi
+
+OPERATOR=$(head -n1 /tmp/backup_info)
+ISO_BACKUP=$(head -n2 /tmp/backup_info | tail -n1)
+MODULES_BACKUP=$(head -n3 /tmp/backup_info | tail -n1)
+if grep "^PACKAGES$" /tmp/backup_info; then
+	PACKAGES_BACKUP="true"
+fi
+ISO_VER=$(grep "^PRETTY_NAME" /etc/os-release | awk -F " " '{print $1}' | awk -F '\"' '{print $2}')
+cd /opt/arcOS/arcos-linux-modules
+git config --global --add safe.directory /opt/arcOS/arcos-linux-modules
+BRANCH=$(git branch --show-current)
+MODULES_VER="$(tail -n 1 /opt/arcOS/arcos-linux-modules/.git/refs/heads/$BRANCH | cut -c 1-7) [$BRANCH]"
+MODULES_VER_FULL=$(tail -n 1 /opt/arcOS/arcos-linux-modules/.git/refs/heads/$BRANCH)
+MODULES_DATE=$(git show --no-patch --format=%ci "${MODULES_VER_FULL}")
+# Set new MODULES_VER
+MODULES_VER="${MODULES_VER} ${MODULES_DATE}"
+echo "Backup:"
+echo -e "${ISO_BACKUP}\n${MODULES_BACKUP}"
+echo
+echo "System:"
+echo -e "${ISO_VER}\n${MODULES_VER}"
+
+mkdir -p ${RESTORE_PATH}/QRV
+
+rm -rf "${RESTORE_PATH}"/QRV/${OPERATOR}
+
+tar -xvaf "${BACKUP_FILE}" \
+-C "${RESTORE_PATH}"/QRV ${OPERATOR} OFFLINE-MAPS \
+-C "${RESTORE_PATH}"/QRV/${OPERATOR} LOGS \
+-C "${RESTORE_PATH}" .operators .station-info \
+-C "${RESTORE_PATH}"/QRV/${OPERATOR} .last-backup \
+| while read -r line; do echo "# ${line}"; done \
+| yad --progress \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="document-revert-symbolic" \
+--title="Restoring $(basename ${BACKUP_FILE})..." \
+--text="Restoring $(basename ${BACKUP_FILE})..." \
+--pulsate \
+--enable-log="Restore Log" \
+--log-expanded \
+--log-height=250 \
+--auto-kill \
+--auto-close \
+--no-escape \
+--no-buttons
+
+if [[ "${MODULES_BACKUP}" != "${MODULES_VER}" ]]; then
+COMPAT_ASK=$(yad --form \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="document-revert-symbolic" \
+--title="User intervention required..." \
+--text-align="left" \
+--text="\
+*** USER INTERVENTION REQUIRED ***\n\n\
+The QRV Modules (arcos-linux-modules) in the backup are a different version than the modules contained in the ISO\!\n\n\
+If the codenames match, and the Backup Modules ARE NEWER than the ISO Modules:\n - Choose 'Restore Anyway' (unless reverting to ISO Modules is desired)\n\n\
+If the codenames match, and the Backup Modules ARE OLDER than the ISO Modules:\n - Choose 'Keep Backup Configs Only' (common when restoring from a backup made before a 'dash' ISO release)\n\n\
+To restore only files OTHER THAN the Backup Modules and Configs ('CALLSIGN/SAVED' directory in the backup):\n - Choose 'Discard Backup Modules + Configs'.\n\
+" \
+--auto-kill \
+--auto-close \
+--no-escape \
+--field="ISO Modules: ${MODULES_VER}\nBackup Modules: ${MODULES_BACKUP}\n:LBL" \
+--button="Restore Anyway":10 \
+--button="Keep Backup Configs Only":20 \
+--button="Discard Backup Modules + Configs":30
+); COMPAT_ASK_RESULT=$?
+	if [[ "${COMPAT_ASK_RESULT}" == 20 ]]; then
+		rm -rf "${RESTORE_PATH}"/QRV/${OPERATOR}/arcos-linux-modules
+	elif [[ "${COMPAT_ASK_RESULT}" == 30 ]]; then
+		rm -rf "${RESTORE_PATH}"/QRV/${OPERATOR}/{arcos-linux-modules,SAVED}
+	fi
+fi
+
+if [[ "${PACKAGES_BACKUP}" == "true" ]]; then
+tar -xvaf "${BACKUP_FILE}" \
+-C "${RESTORE_PATH}"/QRV .packages \
+| while echo "#"; read -r line; do echo "# ${line}"; done \
+| yad --progress \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="document-revert-symbolic" \
+--title="Restoring persistent packages..." \
+--text="Restoring persistent packages..." \
+--pulsate \
+--auto-kill \
+--auto-close \
+--no-escape \
+--no-buttons
+fi
+
+# Install persistent packages
+if [ -d /arcHIVE/QRV/.packages ]; then
+sudo dpkg -R -i --skip-same-version /arcHIVE/QRV/.packages \
+| yad --progress \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="applications-system" \
+--title="Installing persistent packages..." \
+--progress-text="Installing persistent packages..." \
+--pulsate \
+--auto-kill \
+--auto-close \
+--no-escape \
+--no-buttons
+fi
+}
+
+if restore_operator; then
+	notify-send --icon=document-revert-symbolic "Restore Complete!"
+else
+	rm "${RESTORE_PATH}"/QRV/${OPERATOR}/.last-backup > /dev/null 2>&1
+	notify-send --icon=error "Restore Failed!"
+fi
+
+rm /tmp/backup_info > /dev/null 2>&1

@@ -1,0 +1,219 @@
+'\" t
+.\"     Title: flarq
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 08/10/2020
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "FLARQ" "1" "08/10/2020" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+flarq \- ARQ data transfer utility for fldigi
+.SH "SYNOPSIS"
+.sp
+\fBflarq\fR [\fIOPTIONS\fR]
+.SH "DESCRIPTION"
+.sp
+\fBFlarq\fR (fast light automatic repeat request) is a file transfer application that is based on the ARQ specification developed by Paul Schmidt, K9PS\&. It is capable of transmitting and receiving frames of ARQ data via fldigi, as well as MultiPSK on Windows\&.
+.SH "OPTIONS"
+.sp
+Long options begin with two hyphens and are handled by flarq\&. The option names may be abbreviated to any unambiguous substring, and the option argument may be separated from the name by a space or equals sign, as per getopt(3)\&.
+.sp
+Short options begin with a single hyphen and are passed directly to FLTK\&. They may be abbreviated only as indicated\&.
+.PP
+\fB\-\-arq\-protocol\fR \fITYPE\fR
+.RS 4
+Set the ARQ protocol\&. May be either \(lqfldigi\(rq or \(lqmultipsk\(rq\&. Defaults to \(lqfldigi\(rq\&.
+.RE
+.PP
+\fB\-\-arq\-server\-address\fR \fIHOSTNAME\fR
+.RS 4
+Set the ARQ TCP server address\&. Defaults to \(lq127\&.0\&.0\&.1\(rq\&.
+\fIHOSTNAME\fR
+may be any
+\fInode name\fR
+string accepted by
+getaddrinfo(3)\&.
+.RE
+.PP
+\fB\-\-arq\-server\-port\fR \fIPORT\fR
+.RS 4
+Set the ARQ TCP server port\&. Defaults to \(lq7322\(rq\&.
+\fIPORT\fR
+may be any
+\fIservice name\fR
+string accepted by
+getaddrinfo(3)\&.
+.RE
+.PP
+\fB\-\-debug\fR
+.RS 4
+Enable debugging messages\&.
+.RE
+.PP
+\fB\-\-version\fR
+.RS 4
+Print version information and exit\&.
+.RE
+.PP
+\fB\-\-build\-info\fR
+.RS 4
+Print build information and exit\&.
+.RE
+.PP
+\fB\-\-help\fR
+.RS 4
+Print options summary and exit\&.
+.RE
+.SS "Standard FLTK options"
+.PP
+\fB\-bg, \-background\fR \fICOLOUR\fR
+.RS 4
+Set the background colour\&.
+.RE
+.PP
+\fB\-bg2, \-background2\fR \fICOLOUR\fR
+.RS 4
+Set the secondary (text) background colour\&.
+.RE
+.PP
+\fB\-di, \-display\fR \fIDISPLAY\fR
+.RS 4
+Specifies the X server to connect to; see
+X(7)\&.
+.RE
+.PP
+\fB\-dn, \-dnd\fR or \fB\-nodn, \-nodnd\fR
+.RS 4
+Enable or disable drag and drop copy and paste in text fields\&.
+.RE
+.PP
+\fB\-fg, \-foreground\fR \fICOLOUR\fR
+.RS 4
+Set the foreground colour\&.
+.RE
+.PP
+\fB\-g, \-geometry\fR \fIGEOMETRY\fR
+.RS 4
+Set the initial window size and position\&.
+\fBFlarq may not honour this option\fR\&.
+.RE
+.PP
+\fB\-i, \-iconic\fR
+.RS 4
+Start flarq in iconified state\&.
+\fBFlarq may not honour this option\fR\&.
+.RE
+.PP
+\fB\-k, \-kbd\fR or \fB\-nok, \-nokbd\fR
+.RS 4
+Enable or disable visible keyboard focus in non\-text widgets\&.
+.RE
+.PP
+\fB\-na, \-name\fR \fICLASSNAME\fR
+.RS 4
+Set the window class\&. Defaults to \(lqFlarq\(rq\&.
+.RE
+.PP
+\fB\-ti, \-title\fR \fIWINDOWTITLE\fR
+.RS 4
+Set the window title\&. Defaults to \(lqflarq \- <callsign>\(rq\&.
+.RE
+.SS "Additional UI options"
+.PP
+\fB\-\-font\fR \fIFONT[:SIZE]\fR
+.RS 4
+Set the widget font and (optionally) size\&. Defaults to \(lqsans:12\(rq\&.
+.RE
+.SH "FILES"
+.PP
+$HOME/\&.flarq
+.RS 4
+The main settings file\&.
+.RE
+.sp
+The following directories are used to interface with MUAs such as Sylpheed:
+.PP
+$HOME/Mail/ARQin
+.RS 4
+Stores incoming email messages\&.
+.RE
+.PP
+$HOME/Mail/ARQout
+.RS 4
+Stores outgoing email messages\&.
+.RE
+.PP
+$HOME/Mail/ARQsent
+.RS 4
+Stores sent email messages\&.
+.RE
+.sp
+The following directories are used for ARQ file transfer:
+.PP
+$HOME/ARQrecv
+.RS 4
+Stores received files\&.
+.RE
+.PP
+$HOME/ARQsend
+.RS 4
+Stores files to be transmitted\&.
+.RE
+.PP
+$HOME/ARQfiles/logfile\&.txt
+.RS 4
+Stores transfer logs\&.
+.RE
+.SH "BUGS"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+There are no command line arguments to override the default configuration file and ARQ and Mail directories\&.
+.RE
+.SH "SEE ALSO"
+.sp
+fldigi(1), getaddrinfo(3), getopt(3), X(7)
+.SH "RESOURCES"
+.sp
+Flarq web site: http://www\&.w1hkj\&.com/flarq_main\&.html
+.sp
+Fldigi web site: http://www\&.w1hkj\&.com/Fldigi\&.html
+.sp
+Sourceforge project page: http://sourceforge\&.net/projects/fldigi/
+.sp
+ARQ specification by Paul Schmidt, K9PS: http://www\&.w1hkj\&.com/FlarqHelpFiles/ARQ2\&.pdf
+.SH "AUTHORS"
+.sp
+Flarq was written by David Freese, W1HKJ\&.
+.sp
+This manual page was written by Stelios Bounanos <sb[at]enotty(dot)net>\&.
+.SH "COPYING"
+.sp
+License GPLv3+: GNU GPL version 3 or later\&.

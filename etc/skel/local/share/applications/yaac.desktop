@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=YAAC
+GenericName=YAAC
+Comment=APRS Client
+Exec=start-yaac
+Icon=yaac-custom-icon
+Terminal=false
+Type=Application
+Actions=save
+
+[Desktop Action save]
+Name=SAVE YAAC CONFIG
+Exec=/opt/arcOS/bin/save-yaac.sh

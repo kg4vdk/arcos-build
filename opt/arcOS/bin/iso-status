@@ -1,0 +1,24 @@
+#!/bin/bash
+
+CODENAME="$(grep "PRETTY_NAME" /etc/os-release | awk -F "=" '{print $2}' | awk -F "_" '{print $2}' | sed 's/\"//')"
+
+ARCOS_INSTALLED=$(grep "^PRETTY_NAME" /etc/os-release | awk -F " " '{print $1}' | awk -F '\"' '{print $2}')
+
+if [ "${CODENAME}" == "Xanadu" ]; then
+	ARCOS_AVAILABLE=$(curl -L -s arcos-linux.com/xanadu | grep .iso | awk -F ">" '{print $2}' | awk -F "<" '{print $1}' | sed 's/.iso//')
+else
+	ARCOS_AVAILABLE=$(curl -L -s arcos-linux.com | grep .iso | awk -F " " '{print $3}' | awk -F "/" '{print $7}' | sed 's/.iso//')
+fi
+
+
+if ping -c 3 arcos-linux.com > /dev/null; then
+	if [[ "${ARCOS_AVAILABLE}" = "${ARCOS_INSTALLED}" ]]; then
+		echo " "
+	elif [[ "${ARCOS_AVAILABLE}" != "${ARCOS_INSTALLED}" ]]; then
+		echo " "
+	else
+		echo " "
+	fi
+else
+	echo " "
+fi

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FLAMP
+GenericName=FLAMP
+Comment=Amateur Multicast Protocol
+Exec=flamp
+Icon=flamp-custom-icon
+Terminal=false
+Type=Application

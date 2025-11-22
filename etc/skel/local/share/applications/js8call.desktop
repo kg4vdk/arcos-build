@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=JS8CALL
+GenericName=JS8CALL
+Comment=Weak Signal Keyboard-to-Keyboard Messaging
+Exec=sh -c "amixer -c 5 sset 'Auto Gain Control' mute > /dev/null 2>&1; killall direwolf > /dev/null 2>&1; killall ardopcf > /dev/null 2>&1; js8call"
+Icon=js8call-custom-icon
+Terminal=false
+Type=Application
+Actions=save
+
+[Desktop Action save]
+Name=SAVE JS8CALL CONFIG
+Exec=/opt/arcOS/bin/save-js8call.sh

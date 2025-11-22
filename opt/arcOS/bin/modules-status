@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ARCOS_DATA=/arcHIVE
+source $HOME/.station-info
+MODULES_DIR=${ARCOS_DATA}/QRV/${MYCALL}/arcos-linux-modules
+
+# Change to modules directory
+cd ${MODULES_DIR}
+# Get current modules version
+BRANCH=$(git branch --show-current)
+# Get remote URL
+REMOTE_URL=$(git config --get remote.origin.url)
+# If github is reachable check the current version against the available version
+if ping -c 3 github.com > /dev/null; then
+	# If the versions match, display a check mark
+	if [ $(git ls-remote --heads ${REMOTE_URL}.git | grep "${BRANCH}$" | awk '{print $1}' | cut -c 1-7) = $(cat /tmp/modules.log | awk -F " " '{print $1}') ]; then
+		echo ""
+	# If they don't match, display the update icon
+	elif [ $(git ls-remote --heads ${REMOTE_URL}.git | grep "${BRANCH}$" | awk '{print $1}' | cut -c 1-7) != $(cat /tmp/modules.log | awk -F " " '{print $1}') ]; then
+		echo ""
+	# Otherwise, display a question mark
+	else
+		echo ""
+	fi
+# If github is not reachable, display a question mark
+else
+	echo ""
+fi

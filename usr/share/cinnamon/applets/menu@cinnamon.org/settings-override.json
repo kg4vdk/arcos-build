@@ -1,0 +1,23 @@
+{
+    "menu-custom" : {
+        "default" : true,
+        "override-props" : true
+    },
+    "menu-label" : {
+        "default" : "",
+        "override-props" : true
+    },
+    "menu-icon" : {
+        "default" : "start-here-symbolic",
+        "default_icon" : "start-here-symbolic",
+        "override-props" : true
+    },
+    "show-places" : {
+        "default" : false,
+        "override-props" : true
+    },
+    "show-recents" : {
+        "default" : false,
+        "override-props" : true
+    }
+}

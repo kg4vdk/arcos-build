@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FLARQ
+GenericName=FLARQ
+Comment=Amateur Radio Data Transfer with ARQ
+Exec=flarq
+Icon=flarq-custom-icon
+Terminal=false
+Type=Application

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Backup Operator
+GenericName=Backup Operator
+Comment=Backup Operator Files and Configurations
+Exec=backup-operator.sh
+Icon=document-new-symbolic
+Terminal=false
+Type=Application

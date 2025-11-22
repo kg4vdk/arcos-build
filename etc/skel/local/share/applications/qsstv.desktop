@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Comment=Slow Scan Television Client
+Exec=qsstv
+GenericName=QSSTV
+Icon=qsstv-custom-icon
+Name=QSSTV
+NoDisplay=false
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Network;HamRadio
+X-AppImage-Version=1

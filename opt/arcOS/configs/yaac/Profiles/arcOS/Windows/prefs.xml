@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE map SYSTEM "http://java.sun.com/dtd/preferences.dtd">
+<map MAP_XML_VERSION="1.0">
+  <entry key="Map" value="0,0,1024,728"/>
+  <entry key="Telemetry Report" value="0,0,502,366"/>
+  <entry key="YAAC Plugins available for installation" value="0,0,602,343"/>
+</map>

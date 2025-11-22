@@ -1,0 +1,27 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=PAT WLNK
+Comment=Winlink Client
+Exec=sh -c 'XAPP_FORCE_GTKWINDOW_ICON="email" firefox-esr --class WebApp-WinlinkClient0335 --name WebApp-WinlinkClient0335 --profile /home/user/.local/share/ice/firefox/WinlinkClient0335 --no-remote --private-window "http://localhost:8080"'
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=pat-custom-icon
+StartupWMClass=WebApp-WinlinkClient0335
+StartupNotify=true
+X-WebApp-Browser=Firefox Extended Support Release
+X-WebApp-URL=http://localhost:8080
+X-WebApp-CustomParameters=
+X-WebApp-Navbar=false
+X-WebApp-PrivateWindow=false
+X-WebApp-Isolated=true
+Actions=restart;save
+
+[Desktop Action restart]
+Name=RESTART PAT WLNK
+Exec=/opt/arcOS/bin/restart-pat
+
+[Desktop Action save]
+Name=SAVE PAT WLNK CONFIG
+Exec=/opt/arcOS/bin/save-pat.sh

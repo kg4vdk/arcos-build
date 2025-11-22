@@ -1,0 +1,35 @@
+#!/bin/bash
+echo
+echo "===== ARDOP-MODEM ====="
+
+mkdir -p $HOME/.ardop_logs
+
+# Get the USB audio device's card number from the output of `arecord --list-devices`
+USB_AUDIO_DEV=$(arecord --list-devices | grep USB | awk -F ":" '{print $1}' | awk -F " " '{print $2}')
+
+# Verify the USB audio device is connected by testing if the $USB_AUDIO_DEV variable is empty.
+if [ -z "$USB_AUDIO_DEV" ]; then
+	echo "USB Audio Device is NOT CONNECTED!"
+	echo "Using the local soundcard..."
+	echo "Running: ardopcf --logdir ~/.ardop_logs 8515 default default"
+	
+	killall direwolf > /dev/null 2>&1
+	killall ardopcf > /dev/null 2>&1
+	killall VARAFM.exe > /dev/null 2>&1
+	killall VARA.exe > /dev/null 2>&1
+	
+	# Run ardopcf
+	ardopcf --logdir ~/.ardop_logs 8515 default default
+else
+	echo "Running: ardopcf --logdir ~/.ardop_logs -p /dev/digirig 8515 plughw:5,0 plughw:5,0"
+	killall direwolf > /dev/null 2>&1
+	killall ardopcf > /dev/null 2>&1
+	killall VARAFM.exe > /dev/null 2>&1
+	killall VARA.exe > /dev/null 2>&1
+
+	# Muting Auto Gain Control on USB audio device
+	amixer -c 5 sset "Auto Gain Control" mute
+
+	# Run ardopcf
+	ardopcf --logdir ~/.ardop_logs -p /dev/digirig 8515 plughw:5,0 plughw:5,0
+fi

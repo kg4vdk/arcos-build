@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ARCOS_DATA="/arcHIVE"
+
+if ps -e | grep station-setup; then
+	killall station-setup yad persistent-storage
+	if [ -d ${ARCOS_DATA} ]; then
+        mkdir -p ${ARCOS_DATA}/Downloads
+		rm -rf $HOME/Downloads
+		ln -sf ${ARCOS_DATA}/Downloads $HOME/Downloads
+    fi
+	echo "NOT CONFIGURED" > /tmp/modules.log
+	echo "NOT CONFIGURED" > /tmp/qrv-profile.log
+	gsettings set org.cinnamon panels-enabled "['1:0:bottom']"
+	cinnamon --replace &
+	sleep 5
+	notify-send --icon=userinfo "Station Setup Bypassed" "arcOS is not configured!"
+fi
+

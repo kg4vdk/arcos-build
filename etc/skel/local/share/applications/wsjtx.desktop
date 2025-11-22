@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=WSJTX
+GenericName=WSJTX
+Comment=Multi-Mode Weak Signal Communication
+Exec=sh -c "amixer -c 5 sset 'Auto Gain Control' mute > /dev/null 2>&1; killall direwolf > /dev/null 2>&1; killall ardopcf > /dev/null 2>&1; wsjtx"
+Icon=wsjtx-custom-icon
+Terminal=false
+Type=Application
+Actions=save
+
+[Desktop Action save]
+Name=SAVE WSJTX CONFIG
+Exec=/opt/arcOS/bin/save-wsjtx.sh

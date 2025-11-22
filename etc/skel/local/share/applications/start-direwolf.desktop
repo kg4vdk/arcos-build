@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=DIREWOLF
+GenericName=DIREWOLF
+Comment=Packet Modem
+Exec=gnome-terminal --class=start-direwolf --hide-menubar --title="DIREWOLF" --zoom=0.75 -- start-direwolf
+Icon=direwolf-custom-icon
+Terminal=false
+Type=Application
+Actions=save
+
+[Desktop Action save]
+Name=SAVE DIREWOLF CONFIG
+Exec=/opt/arcOS/bin/save-direwolf.sh

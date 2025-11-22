@@ -1,0 +1,6 @@
+{
+    "pinned-apps" : {
+        "default" : ["arcOS-Field-Manual.desktop", "nemo.desktop", "org.gnome.Terminal.desktop", "firefox-esr.desktop"],
+        "override-props" : true
+    }
+}

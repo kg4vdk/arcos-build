@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FLRIG
+GenericName=FLRIG
+Comment=Rig Control
+Exec=flrig
+Icon=flrig-custom-icon
+Terminal=false
+Type=Application

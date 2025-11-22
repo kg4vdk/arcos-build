@@ -1,0 +1,18 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=SkyAware
+Comment=ADS-B Viewer
+Exec=sh -c 'XAPP_FORCE_GTKWINDOW_ICON="web-airdroid" firefox-esr --class WebApp-ADSB2388 --name WebApp-ADSB2388 --profile /home/user/.local/share/ice/firefox/ADSB2388 --no-remote --private-window "http://localhost:1090"'
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=web-airdroid
+StartupWMClass=WebApp-ADSB2388
+StartupNotify=true
+X-WebApp-Browser=Firefox Extended Support Release
+X-WebApp-URL=http://localhost:1090
+X-WebApp-CustomParameters=
+X-WebApp-Navbar=false
+X-WebApp-PrivateWindow=false
+X-WebApp-Isolated=true

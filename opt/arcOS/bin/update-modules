@@ -1,0 +1,80 @@
+#!/bin/bash
+
+ARCOS_DATA=/arcHIVE
+
+source $HOME/.station-info
+
+########################
+
+git_clone () {
+git clone -b $BRANCH https://github.com/kg4vdk/arcos-linux-modules || exit 1
+}
+
+progress_popup () {
+yad --progress \
+--undecorated \
+--center \
+--width=500 \
+--borders=36 \
+--window-icon="update-manager" \
+--title="Update QRV Modules" \
+--progress-text="Updating QRV Modules..." \
+--pulsate \
+--auto-kill \
+--auto-close \
+--no-escape \
+--no-buttons
+}
+
+update () {
+rm /tmp/active-modules 2> /dev/null
+
+if [ -d $ARCOS_DATA/QRV/$MYCALL/arcos-linux-modules/.git ]; then
+	#//COMMUNITY
+	for active in $(find /arcHIVE/QRV/$MYCALL/arcos-linux-modules/COMMUNITY -maxdepth 1 -type f -name "*.sh" | grep "[0-9][0-9]_.*\.sh" | awk -F "/" '{print $6"/"$7}'); do
+		echo "$active" >> /tmp/active-modules
+		active_dir=$(echo "$active" | awk -F "/" '{print $2}' | awk -F "_" '{print $2}' | awk -F "." '{print $1}')
+		rm $ARCOS_DATA/QRV/$MYCALL/arcos-linux-modules/$active
+	done
+
+	#//UPDATE MODULES
+	cd $ARCOS_DATA/QRV/${MYCALL}/arcos-linux-modules
+	BRANCH=$(git branch --show-current)
+	git clean -f ./CORE
+	git clean -f ./COMMUNITY
+	git fetch --all
+	git reset --hard origin/$BRANCH
+	cd /tmp
+    git_clone
+	tar -czf $ARCOS_DATA/QRV/.arcos-linux-modules.tgz arcos-linux-modules || exit 1
+	rm -rf /tmp/arcos-linux-modules
+	for i in $(find /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE -maxdepth 2 -type f -name "*.sh" | grep "[0-9][0-9]_.*\.sh"); do
+		mv "$i" /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/
+	done
+	
+	#//re-enable previously "active" modules//
+	#//COMMUNITY
+	for active in $(cat /tmp/active-modules 2> /dev/null | grep COMMUNITY); do
+		active_dir=$(echo "$active" | awk -F "/" '{print $2}' | awk -F "_" '{print $2}' | awk -F "." '{print $1}')
+		mv $ARCOS_DATA/QRV/$MYCALL/arcos-linux-modules/COMMUNITY/$active_dir/00_$active_dir.sh $ARCOS_DATA/QRV/$MYCALL/arcos-linux-modules/$active
+	done
+else
+	cd $ARCOS_DATA/QRV/${MYCALL}
+	BRANCH=$(grep "^PRETTY_NAME" /etc/os-release | awk -F "=" '{print $2}' | awk -F "_" '{print $2}' | awk -F '\"' '{print $1}' | tr [:upper:] [:lower:])
+	git_clone | progress_popup
+	tar -czf $ARCOS_DATA/QRV/.arcos-linux-modules.tgz arcos-linux-modules || exit 1
+	for i in $(find /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE -maxdepth 2 -type f -name "*.sh" | grep "[0-9][0-9]_.*\.sh"); do
+		mv "$i" /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/
+	done
+fi
+}
+
+if ping -c 1 8.8.8.8 > /dev/null; then
+	if update | progress_popup ; then
+		notify-send --urgency=critical --icon=update-manager "QRV Modules updated!" "Reboot to complete the update.\n\nClick to dismiss this message."
+	else
+		notify-send --icon=error "Error updating QRV Modules!"
+	fi
+else
+	notify-send --icon=error "Internet connection required!" "Updating QRV Modules requires an internet connection. Please connect to a network, and try again."	
+fi

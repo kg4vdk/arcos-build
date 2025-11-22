@@ -1,0 +1,14 @@
+{
+    "use-custom-format" : {
+        "default" : true,
+        "override-props" : true
+    },
+    "custom-format" : {
+        "default" : "%a, %b %d%n%H:%M %Z",
+        "override-props" : true
+    },
+    "custom-tooltip-format" : {
+        "default" : "%a, %b %d %H:%M %Z",
+        "override-props" : true
+    }
+}

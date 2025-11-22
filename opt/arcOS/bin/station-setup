@@ -1,0 +1,645 @@
+#!/bin/bash
+
+# Identify and define the boot device and persistent partition
+BOOT_DEV="$(df -h | grep cdrom | awk -F " " '{print $1}')"
+if [[ $BOOT_DEV == *"nvme"* ]]; then
+	DISK=${BOOT_DEV%??}
+	EXFAT_PARTITION="p3"
+elif [[ $BOOT_DEV == *"mmcblk"* ]]; then
+    DISK=${BOOT_DEV%??}
+	EXFAT_PARTITION="p3"
+else
+	DISK=${BOOT_DEV%?}
+	EXFAT_PARTITION="3"
+fi
+
+# Define paths for arcOS files
+ARCOS_DIR=/opt/arcOS
+ARCOS_DATA=/arcHIVE
+
+# Identify and define the arcOS release codename
+CODENAME="$(grep "PRETTY_NAME" /etc/os-release | awk -F "=" '{print $2}' | awk -F "_" '{print $2}' | sed 's/\"//')"
+
+# Set default (empty) passwd for the user
+sudo passwd --delete user
+
+# Hide the panel until Station Setup is complete
+gsettings set org.cinnamon panels-enabled "['1:999:bottom']"
+
+# Kill any running "Last Backup" conky
+pkill -f backup-conkyrc > /dev/null 2>&1
+
+# Check for existence of, or configure, persistent storage
+/opt/arcOS/bin/persistent-storage > /dev/null 2>&1
+
+# Create udev rule to automatically shutdown if boot device (arcHIVE partition) is removed
+if [ "${BOOT_DEV}" != "/dev/shm" ] && [ "${BOOT_DEV}" != "/dev/sr0" ] && [ "${BOOT_DEV}" != "/dev/mapper/ventoy" ]; then
+	ARCHIVE_UUID=$(sudo blkid -s UUID -o value ${DISK}${EXFAT_PARTITION})
+	sudo cp ${ARCOS_DIR}/configs/udev/99-boot-device-watch.rules /usr/lib/udev/rules.d/
+	sudo sed -i "s/XXXARCHIVEUUIDXXX/${ARCHIVE_UUID}/" /usr/lib/udev/rules.d/99-boot-device-watch.rules
+	sudo udevadm control --reload-rules
+fi
+
+# Create the boot counter file
+COUNT_FILE=/arcHIVE/.counter
+
+# Increment the counter
+if [ -f $COUNT_FILE ]; then
+	COUNT=$(cat $COUNT_FILE)
+	COUNT=$((COUNT+1))
+	echo $COUNT > $COUNT_FILE
+else
+	echo "0" > $COUNT_FILE
+	COUNT=$(cat $COUNT_FILE)
+fi
+
+#########################################
+
+##### FUNCTIONS TO BE CALLED LATER #####
+# Non-persistent boot actions
+non_persistent_boot () {
+if [ "${BOOT_DEV}" == "/dev/shm" ] || [ "${BOOT_DEV}" == "/dev/sr0" ] || [ "${BOOT_DEV}" == "/dev/mapper/ventoy" ]; then
+	# Disable high-consuming modules while ram booted
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*_FIREFOX.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/FIREFOX/ > /dev/null 2>&1
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*_GNUPG.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/GNUPG/ > /dev/null 2>&1
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*_KEYRING.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/KEYRING/ > /dev/null 2>&1
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*_SSH.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/SSH/ > /dev/null 2>&1
+	notify-send --urgency=critical --icon=dialog-warning "These CORE Modules are DISABLED!" "FIREFOX\nGNUPG\nKEYRING\nSSH\n\nClick to dismiss this message."
+fi
+}
+
+# Handle VARA based on user choice
+handle_vara () {
+if [ "${VARA_STATUS}" == "ENABLED" ]; then
+	# Enable the VARA modules
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/VARA/*_VARA.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/ > /dev/null 2>&1
+else
+	# Disable VARA modules
+	mv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*_VARA.sh /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/VARA/ > /dev/null 2>&1
+	if [ -d $HOME/.wine_vara_32 ]; then
+		rm -rf $HOME/.wine_vara_32
+		rm -rf $HOME/.local/share/applications/wine/VARA*
+		rm -rf $HOME/.local/share/icons/hicolor/48x48/apps/*VARA*
+	fi
+fi
+}
+        
+# Run the CORE modules
+run_core_modules () {
+for i in $(ls /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/*.sh); do
+    	MODULE_NAME=$(basename $i)
+    	echo "${MODULE_NAME}"
+	    bash $i
+    done
+sudo chmod -R +x /opt/arcOS/bin
+}
+
+# Run the COMMUNITY modules
+run_community_modules () {
+for i in $(ls /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/COMMUNITY/*.sh | grep -v "_PRE_"); do
+   	MODULE_NAME=$(basename $i)
+   	echo "${MODULE_NAME}"
+    bash $i
+done
+}
+
+# Run the USER modules
+run_user_modules () {
+mkdir -p /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/USER
+for i in $(ls /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/USER/*.sh | grep -v "_PRE_"); do
+   	MODULE_NAME=$(basename $i)
+   	echo "${MODULE_NAME}"
+    bash $i
+done
+}
+
+# Link the persistent bash_history for the user into $HOME
+bash_history () { 
+touch /arcHIVE/QRV/${MYCALL}/.bash_history
+ln -sf /arcHIVE/QRV/${MYCALL}/.bash_history $HOME/.bash_history
+}
+		
+# Bookmark QRV and QRV/$CALLSIGN
+nemo_bookmarks () {
+if df | grep "/bind_arcHIVE"; then
+   	if ! grep "file:///arcHIVE arcHIVE" $HOME/.config/gtk-3.0/bookmarks; then
+		echo "file:///arcHIVE arcHIVE" >> $HOME/.config/gtk-3.0/bookmarks
+	fi
+fi
+if ! grep "file:///arcHIVE/QRV QRV" $HOME/.config/gtk-3.0/bookmarks; then
+	echo "file:///arcHIVE/QRV QRV" >> $HOME/.config/gtk-3.0/bookmarks
+fi
+if ! grep "file:///arcHIVE/QRV/" $HOME/.config/gtk-3.0/bookmarks; then
+	echo "file:///arcHIVE/QRV/${MYCALL} ${MYCALL}" >> $HOME/.config/gtk-3.0/bookmarks
+else
+	sed -i "s;file:///arcHIVE/QRV/.*$;file:///arcHIVE/QRV/${MYCALL} ${MYCALL};" $HOME/.config/gtk-3.0/bookmarks
+fi
+}
+
+# Set emblems and colors on directories
+nemo_emblems_and_colors () {
+gio set -t stringv /arcHIVE/QRV metadata::emblems emblem-default
+touch /arcHIVE/QRV
+gio set -t stringv /arcHIVE/QRV/${MYCALL} metadata::emblems emblem-default
+touch /arcHIVE/QRV/${MYCALL}
+gio set /arcHIVE/QRV/${MYCALL}/arcos-linux-modules metadata::custom-icon file:///usr/share/icons/Mint-Y-Red/places/64/folder.png
+gio set -t stringv /arcHIVE/QRV/${MYCALL}/arcos-linux-modules metadata::emblems emblem-system
+touch /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+gio set /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE metadata::custom-icon file:///usr/share/icons/Mint-Y-Red/places/64/folder.png
+touch /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE
+gio set /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/COMMUNITY metadata::custom-icon file:///usr/share/icons/Mint-Y-Blue/places/64/folder.png
+touch /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/COMMUNITY
+gio set /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/USER metadata::custom-icon file:///usr/share/icons/Mint-Y/places/64/folder.png
+touch /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/USER
+gio set -t stringv /arcHIVE/QRV/${MYCALL}/SAVED metadata::emblems emblem-system
+touch /arcHIVE/QRV/${MYCALL}/SAVED
+gio set /arcHIVE/Downloads metadata::custom-icon file:///usr/share/icons/Mint-Y-Sand/places/64/folder-download.png
+touch /arcHIVE/Downloads
+gio set -t stringv /arcHIVE/QRV/OFFLINE-MAPS metadata::emblems emblem-web
+touch /arcHIVE/QRV/OFFLINE-MAPS
+}
+
+##### END FUNCTIONS SECTION #####
+
+#########################################
+
+# Auto-start screenrecording if .screen-record exists in /arcHIVE
+if [ -f ${ARCOS_DATA}/.screen-record ]; then
+	simplescreenrecorder --start-hidden --start-recording &
+	notify-send --icon=simplescreenrecorder "Screen recording enabled!"
+elif [ -f /media/user/arcHIVE/.screen-record ]; then
+	simplescreenrecorder --start-hidden --start-recording &
+	notify-send --icon=simplescreenrecorder "Screen recording enabled!"
+fi
+
+# Define the announcement, if arcOS-announce.mp3 exists in /arcHIVE or /media/user/arcHIVE
+if [ -f ${ARCOS_DATA}/arcOS-announce.mp3 ]; then
+	ANNOUNCE_FILE="${ARCOS_DATA}/arcOS-announce.mp3"
+elif [ -f /media/user/arcHIVE/arcOS-announce.mp3 ]; then
+	ANNOUNCE_FILE="/media/user/arcHIVE/arcOS-announce.mp3"
+fi
+if [ ! -z "${ANNOUNCE_FILE}" ]; then
+	ANNOUNCE_ARTIST_ID3=$(ffprobe -loglevel error -show_entries format_tags=artist -of default=noprint_wrappers=1:nokey=1 "${ANNOUNCE_FILE}" 2> /dev/null)
+	ANNOUNCE_TITLE_ID3=$(ffprobe -loglevel error -show_entries format_tags=title -of default=noprint_wrappers=1:nokey=1 "${ANNOUNCE_FILE}" 2> /dev/null)
+	ANNOUNCE_COMMENT_ID3=$(ffprobe -loglevel error -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 "${ANNOUNCE_FILE}" 2> /dev/null)
+fi
+if [ ! -z "${ANNOUNCE_ARTIST_ID3}" ] && [ ! -z "${ANNOUNCE_TITLE_ID3}" ]; then
+	ANNOUNCE_INFO=$(echo "${ANNOUNCE_ARTIST_ID3} - ${ANNOUNCE_TITLE_ID3} $(if [ ! -z "${ANNOUNCE_COMMENT_ID3}" ]; then echo -e "\n\n${ANNOUNCE_COMMENT_ID3}"; fi)")
+elif [  ! -z "${ANNOUNCE_COMMENT_ID3}"  ]; then
+	ANNOUNCE_INFO=$(echo "${ANNOUNCE_COMMENT_ID3}")
+else
+	ANNOUNCE_INFO="Playing $(basename "${ANNOUNCE_FILE}")..."
+fi
+
+# Define the challenge, if arcOS-challenge.mp3 exists in /arcHIVE or /media/user/arcHIVE
+if [ -f ${ARCOS_DATA}/arcOS-challenge.mp3 ]; then
+	CHALLENGE_FILE="${ARCOS_DATA}/arcOS-challenge.mp3"
+elif [ -f /media/user/arcHIVE/arcOS-challenge.mp3 ]; then
+	CHALLENGE_FILE="/media/user/arcHIVE/arcOS-challenge.mp3"
+fi
+if [ ! -z "${CHALLENGE_FILE}" ]; then
+	CHALLENGE_ARTIST_ID3=$(ffprobe -loglevel error -show_entries format_tags=artist -of default=noprint_wrappers=1:nokey=1 "${CHALLENGE_FILE}" 2> /dev/null)
+	CHALLENGE_TITLE_ID3=$(ffprobe -loglevel error -show_entries format_tags=title -of default=noprint_wrappers=1:nokey=1 "${CHALLENGE_FILE}" 2> /dev/null)
+	CHALLENGE_COMMENT_ID3=$(ffprobe -loglevel error -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 "${CHALLENGE_FILE}" 2> /dev/null)
+fi
+if [ ! -z "${CHALLENGE_ARTIST_ID3}" ] && [ ! -z "${CHALLENGE_TITLE_ID3}" ]; then
+	CHALLENGE_INFO=$(echo "${CHALLENGE_ARTIST_ID3} - ${CHALLENGE_TITLE_ID3} $(if [ ! -z "${CHALLENGE_COMMENT_ID3}" ]; then echo -e "\n\n${CHALLENGE_COMMENT_ID3}"; fi)")
+elif [  ! -z "${CHALLENGE_COMMENT_ID3}"  ]; then
+	CHALLENGE_INFO=$(echo "${CHALLENGE_COMMENT_ID3}")
+else
+	CHALLENGE_INFO="Playing $(basename "${CHALLENGE_FILE}")..."
+fi
+
+# Play the announcement, challenge, or both
+if [ ! -z "${ANNOUNCE_FILE}" ] && [ -z "${CHALLENGE_FILE}" ]; then
+	notify-send --urgency=critical --icon=audio-speakers-symbolic "arcOS Announcement:" "${ANNOUNCE_INFO}\n\nClick to dismiss this message." 
+	ffplay -nodisp -autoexit ${ANNOUNCE_FILE} > /dev/null 2>&1 &
+elif [ ! -z "${CHALLENGE_FILE}" ] && [ -z "${ANNOUNCE_FILE}" ]; then
+	notify-send --urgency=critical --icon=audio-speakers-symbolic "arcOS Challenge:" "${CHALLENGE_INFO}\n---\nTo generate a QRV report, open Terminal and run \"qrv\"\n\nClick to dismiss this message."
+	ffplay -nodisp -autoexit ${CHALLENGE_FILE} > /dev/null 2>&1 &
+elif [ ! -z "${CHALLENGE_FILE}" ] && [ ! -z "${ANNOUNCE_FILE}" ]; then
+	cat "${ANNOUNCE_FILE}" > /tmp/arcOS-combo.mp3
+	cat "${CHALLENGE_FILE}" >> /tmp/arcOS-combo.mp3
+	COMBO_FILE="/tmp/arcOS-combo.mp3"
+	notify-send --urgency=critical --icon=audio-speakers-symbolic "arcOS Announcement + Challenge:" "${ANNOUNCE_INFO}\n---\nChallenge: ${CHALLENGE_INFO}\n---\nTo generate a QRV report, open Terminal and run \"qrv\"\n\nClick to dismiss this message."
+	ffplay -nodisp -autoexit ${COMBO_FILE} > /dev/null 2>&1 &
+fi
+
+#################################################
+
+# Install persistent packages
+if [ -d ${ARCOS_DATA}/QRV/.packages ]; then
+	sudo dpkg -R -i --skip-same-version /arcHIVE/QRV/.packages \
+	| yad --progress \
+	--undecorated \
+	--center \
+	--width=500 \
+	--borders=36 \
+	--window-icon="applications-system" \
+	--title="Installing persistent packages..." \
+	--progress-text="Installing persistent packages..." \
+	--pulsate \
+	--auto-kill \
+	--auto-close \
+	--no-escape \
+	--no-buttons
+fi
+
+# Reset default background image
+sudo cp /opt/arcOS/backgrounds/releases/${CODENAME}-3840x2160.jpg /usr/share/backgrounds/linuxmint/default_background.jpg
+sudo chmod 644 /usr/share/backgrounds/linuxmint/default_background.jpg
+gsettings set org.cinnamon.desktop.background picture-uri "file:///usr/share/backgrounds/linuxmint/default_background.jpg"
+gsettings set org.cinnamon.desktop.background.slideshow slideshow-enabled false
+
+# Reset cronjobs
+cat << EOF |sudo tee /etc/crontab
+@reboot root for i in 1 2 3 4; do /usr/bin/ruby /opt/arcOS/bin/gps2file.rb && sleep 5; done
+@reboot root for i in 1 2 3 4; do /opt/arcOS/bin/check-gps-clock && sleep 10; done
+* * * * * root /opt/arcOS/bin/check-gps-clock
+* * * * * root /usr/bin/ruby /opt/arcOS/bin/gps2file.rb
+EOF
+sudo systemctl restart cron.service
+
+# Remove $HOME/.station-info, /tmp/modules.log, and/tmp/qrv-profile.log
+rm $HOME/.station-info 2> /dev/null
+rm /tmp/modules.log 2> /dev/null
+rm /tmp/qrv-profile.log 2> /dev/null
+
+# Create .operators directory
+mkdir -p ${ARCOS_DATA}/.operators
+
+# If more than one user, present operator selection dialog
+if [ ! -f ${ARCOS_DATA}/.autoconfig ]; then
+	if [ -f ${ARCOS_DATA}/.station-info ]; then
+		source ${ARCOS_DATA}/.station-info
+		LAST_OP="${MYCALL}"
+		unset MYCALL
+		OP_LIST="^${LAST_OP}$(for operator in $(ls ${ARCOS_DATA}/.operators/station-info_* | awk -F "_" '{print $2}' | grep -v "${LAST_OP}"); do echo -n "!$operator"; done)!Add new...!Restore from backup..."
+	else
+		OP_LIST="^$(for operator in $(ls ${ARCOS_DATA}/.operators/station-info_* | awk -F "_" '{print $2}' | grep -v "${LAST_OP}"); do echo -n "!$operator"; done)!Add new...!Restore from backup..."
+	fi
+	OP_SELECT=$(yad --title="Select Operator" \
+	--undecorated \
+	--window-icon="userinfo" \
+	--form --borders=36 \
+	--center \
+	--fixed \
+	--image-on-top \
+	--image=${ARCOS_DIR}/images/select-operator.png \
+	--field="":CB "${OP_LIST}" \
+	--button="OK" \
+	--buttons-layout=center \
+	--no-escape)
+
+	# Cleanup previous .station-info
+	rm ${ARCOS_DATA}/.station-info 2> /dev/null
+
+	# If there is form output, prefill the station-info file
+	if echo "${OP_SELECT}" | grep "|" > /dev/null; then
+	    CURRENT_OP=$(echo "${OP_SELECT}" | sed 's/|//')
+	    if [[ ${CURRENT_OP} == "Restore from backup..." ]]; then
+	    	/opt/arcOS/bin/restore-operator
+	    elif [ -f "${ARCOS_DATA}/.operators/station-info_${CURRENT_OP}" ]; then
+	    	cp ${ARCOS_DATA}/.operators/station-info_${CURRENT_OP} ${ARCOS_DATA}/.station-info
+		fi
+	fi
+fi
+
+# Get autoconfig info if it exists
+if [ -f ${ARCOS_DATA}/.autoconfig ]; then
+	source ${ARCOS_DATA}/.autoconfig
+# Get previous station info from /arcHIVE/.station-info if it exists
+elif [ -f ${ARCOS_DATA}/.station-info ]; then
+    source ${ARCOS_DATA}/.station-info
+    QRV_PROFILE_LIST="^${QRV_PROFILE}$(for profile in $(ls /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES | grep -v "${QRV_PROFILE}"); do echo -n "!$profile"; done)"
+#Otherwise, station info is not pre-filled
+else
+    MYCALL=""
+    MYLOC=""
+    QRV_PROFILE="NONE"
+    QRV_PROFILE_LIST="^${QRV_PROFILE}"
+    VARA_STATUS="DISABLED"
+fi
+
+# If GPS fix is available, pre-populate the current gridsquare
+if [ -f /tmp/grid.log ]; then
+	MYLOC=$(cat /tmp/grid.log)
+fi
+
+# Populate the QRV profile list with the previously used profile at the top, if it exists
+if [ -d /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES/${QRV_PROFILE} ]; then
+	QRV_PROFILE_LIST="^${QRV_PROFILE}$(for profile in $(ls /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES | grep -v "${QRV_PROFILE}"); do echo -n "!$profile"; done)"
+# Otherwise, populate the QRV profile with NONE
+else
+	QRV_PROFILE_LIST="^NONE$(for profile in $(ls /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES | grep -v "${QRV_PROFILE}"); do echo -n "!$profile"; done)"
+fi
+
+# Populate the VARA field with the previously used value
+if [ "${VARA_STATUS}" == "DISABLED" ]; then
+	VARA_STATUS_LIST="^DISABLED!ENABLED"
+else
+	VARA_STATUS_LIST="^ENABLED!DISABLED"
+fi
+
+# If /arcHIVE/.autoconfig exists, use the pre-populated information and bypass the form
+if [ -f ${ARCOS_DATA}/.autoconfig ]; then    
+    STATION_SETUP="${MYCALL}|${MYLOC}||${QRV_PROFILE}|${VARA_STATUS}"
+    notify-send --icon=userinfo "Station Setup" "Using .autoconfig for ${MYCALL}..."
+# Otherwise, present the station setup form
+else
+	STATION_SETUP=$(yad --title="Station Setup" \
+	--undecorated \
+	--window-icon="userinfo" \
+	--form --borders=36 \
+	--center \
+	--fixed \
+	--image-on-top \
+	--image=${ARCOS_DIR}/images/station-setup-banner.png \
+	--field="	Callsign" "${MYCALL}" \
+	--field=" 	Grid" "${MYLOC}" \
+	--field="":LBL "" \
+	--field="QRV Profile":CB "${QRV_PROFILE_LIST}" \
+	--field="VARA":CB "${VARA_STATUS_LIST}" \
+	--button="OK" \
+	--buttons-layout=end \
+	--no-escape)
+fi
+
+# If there is form output, setup the station
+if echo "${STATION_SETUP}" | grep "|" > /dev/null; then
+    STATION_INFO=$(echo "${STATION_SETUP}" | tr '[:lower:]' '[:upper:]')
+    
+    MYCALL="$(echo "${STATION_INFO}" | awk -F "|" '{print $1}')"
+    if [ -z "${MYCALL}" ]; then
+    	MYCALL="N0CALL"
+    fi
+    echo "MYCALL=\"${MYCALL}\"" > $HOME/.station-info
+    
+    MYLOC="$(echo "${STATION_INFO}" | awk -F "|" '{print $2}')"
+    if [ -z "${MYLOC}" ]; then
+        MYLOC="JJ00"
+    fi
+    echo "MYLOC=\"${MYLOC}\"" >> $HOME/.station-info
+    
+    # Field 3 is intentionally blank as a spacer
+    
+    QRV_PROFILE="$(echo "${STATION_INFO}" | awk -F "|" '{print $4}')"
+	if [ -z "${QRV_PROFILE}" ]; then
+        QRV_PROFILE="NONE"
+    fi
+    echo "QRV_PROFILE=\"${QRV_PROFILE}\"" >> $HOME/.station-info
+
+    VARA_STATUS="$(echo "${STATION_INFO}" | awk -F "|" '{print $5}')"
+	if [ -z "${VARA_STATUS}" ]; then
+        VARA_STATUS="DISABLED"
+    fi
+    echo "VARA_STATUS=\"${VARA_STATUS}\"" >> $HOME/.station-info
+    
+    cp $HOME/.station-info ${ARCOS_DATA}/.operators/station-info_${MYCALL}
+	
+	notify-send --icon=gnome-break-timer "Configuring arcOS for ${MYCALL}!"
+
+	# Create QRV directory if it doesn't exist, and reset any emblems on the QRV directory and any top-level subdirectories
+	mkdir -p ${ARCOS_DATA}/QRV
+	find ${ARCOS_DATA}/QRV -maxdepth 1 -type d -exec gio set -t stringv {} metadata::emblems [] \;
+	touch ${ARCOS_DATA}/QRV
+	find ${ARCOS_DATA}/QRV -maxdepth 1 -type d -exec touch {} \;
+    
+    # Copy $HOME/.station-info to /arcHIVE, and link /arcHIVE/Downloads into $HOME
+    if [ -d ${ARCOS_DATA} ]; then
+        cp $HOME/.station-info ${ARCOS_DATA}/.station-info
+        mkdir -p ${ARCOS_DATA}/Downloads
+		rm -rf $HOME/Downloads
+		ln -sf ${ARCOS_DATA}/Downloads $HOME/Downloads
+    fi
+    # Put station setup information into variables for use during setup
+    source $HOME/.station-info
+
+	# Set the full name of the user
+	sudo chfn --full-name "${MYCALL}" $USER
+	
+	# Set user name for lockscreen
+	sudo sed -i "s/^export USERFULLNAME=.*$/export USERFULLNAME=\"${MYCALL}\"/" /etc/casper.conf
+
+    # Kill any running CORE module applications
+    echo "Closing any relevant applications..."
+    killall direwolf ardopcf > /dev/null 2>&1
+    killall VARAFM.exe VARA.exe > /dev/null 2>&1
+    killall fldigi flamp flmsg flrig rigctl rigctld > /dev/null 2>&1
+    killall js8call wsjtx > /dev/null 2>&1
+    killall warpinator > /dev/null 2>&1
+    killall java > /dev/null 2>&1
+    killall qsstv > /dev/null 2>&1
+    killall firefox-esr > /dev/null 2>&1
+    killall thunderbird > /dev/null 2>&1
+    killall gnome-calendar > /dev/null 2>&1
+    killall evolution-alarm-notify 2>&1
+    killall seahorse > /dev/null 2>&1
+    killall kleopatra > /dev/null 2>&1
+    killall viking > /dev/null 2>&1
+    killall hexchat > /dev/null 2>&1
+    pkill -f paracon > /dev/null 2>&1
+    pkill -f sticky > /dev/null 2>&1
+    sleep 1
+
+    # Configure CORE module applications with clean configs
+    rm -rf $HOME/.fldigi $HOME/.nbems
+   	tar -C $HOME -xzf ${ARCOS_DIR}/configs/fl-suite/fl-suite_BASE.tgz
+    cp ${ARCOS_DIR}/configs/direwolf/direwolf.conf $HOME/.config/direwolf.conf
+    cp ${ARCOS_DIR}/configs/pat/config.json $HOME/.config/pat/config.json
+    cp -a ${ARCOS_DIR}/configs/yaac/Profiles $HOME/.java/.userPrefs/org/ka2ddo/yaac/
+    cp ${ARCOS_DIR}/configs/js8call/JS8Call.ini $HOME/.config/
+    cp -a ${ARCOS_DIR}/configs/wsjtx/WSJT-X.ini $HOME/.config/
+    cp ${ARCOS_DIR}/configs/qsstv/qsstv_9.0.conf $HOME/.config/ON4QZ/qsstv_9.0.conf
+    cp ${ARCOS_DIR}/configs/kleopatra/kleopatrarc $HOME/.config/kleopatrarc
+    
+    # Apply station setup information to the configs
+    for i in $HOME/.fldigi/fldigi_def.xml $HOME/.fldigi/notify.prefs $HOME/.nbems/FLMSG.prefs $HOME/.nbems/FLAMP/FLAMP.prefs $HOME/.nbems/ARQ/flarq.config $HOME/.config/pat/config.json $HOME/.config/direwolf.conf $HOME/.java/.userPrefs/org/ka2ddo/yaac/Profiles/arcOS/Ports/prefs.xml $HOME/.java/.userPrefs/org/ka2ddo/yaac/Profiles/arcOS/Beacons/MYCALL/prefs.xml $HOME/.config/JS8Call.ini $HOME/.config/ON4QZ/qsstv_9.0.conf; do
+        sed -i "s/XXXCALLSIGNXXX/${MYCALL}/g" $i
+        sed -i "s/XXXGRIDXXX/${MYLOC}/g" $i
+        sed -i "s/XXXINFOXXX/NONE/g" $i
+    done
+    SHORTGRID=$(echo "${MYLOC}" | cut -c -6)
+    sed -i "s/XXXCALLSIGNXXX/${MYCALL}/g" $HOME/.config/WSJT-X.ini
+    sed -i "s/XXXGRIDXXX/${SHORTGRID}/g" $HOME/.config/WSJT-X.ini
+
+	# Restart the Pat Winlink service
+    sudo systemctl restart pat@$USER.service
+    
+    # Use the user's custom wallpaper or slideshow if it exists
+    if [ -f /arcHIVE/QRV/${MYCALL}/Wallpapers/wallpaper.jpg ]; then
+        gsettings set org.cinnamon.desktop.background picture-uri "file:///arcHIVE/QRV/${MYCALL}/Wallpapers/wallpaper.jpg"
+    elif [ -d /arcHIVE/QRV/${MYCALL}/Wallpapers/Slideshow ]; then
+    	WALLPAPER_DIR=/arcHIVE/QRV/${MYCALL}/Wallpapers/Slideshow
+		gsettings set org.cinnamon.desktop.background.slideshow slideshow-enabled true
+		gsettings set org.cinnamon.desktop.background.slideshow image-source "directory://${WALLPAPER_DIR}"
+	fi
+	
+	# Set the screensaver to use the user's callsign
+	gsettings set org.cinnamon.desktop.screensaver time-format ${MYCALL}
+	gsettings set org.cinnamon.desktop.screensaver date-format "%a, %B %d%n%H:%M %Z"
+	
+	# Set the VNC password to the user's callsign
+    mkdir -p $HOME/.vnc
+    x11vnc --storepasswd "${MYCALL}" $HOME/.vnc/passwd
+
+	# If arcos-linux-modules are already deployed to /arcHIVE, then...
+    if [ -d /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/.git ]; then
+    chmod -R a+x /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+    	# Get the current module version and commit
+    	cd /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+    	BRANCH=$(git branch --show-current)
+    	# Put the module info into /tmp/modules.log
+    	if [ -f /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/.git/refs/heads/$BRANCH ]; then
+        	MODULES_VERSION="$(tail -n 1 /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/.git/refs/heads/$BRANCH | cut -c 1-7) [$BRANCH]"
+        	echo "${MODULES_VERSION}" > /tmp/modules.log
+    	fi
+    	
+    	bash_history
+    	
+    	nemo_bookmarks
+	    
+	    non_persistent_boot
+	    
+	    handle_vara
+	    
+		run_core_modules | yad --progress \
+		--undecorated \
+		--center \
+		--width=500 \
+		--borders=36 \
+		--window-icon="applications-system" \
+		--title="Deploying CORE modules..." \
+		--progress-text="Deploying CORE modules..." \
+		--pulsate \
+		--auto-kill \
+		--auto-close \
+		--no-escape \
+		--no-buttons
+
+		run_community_modules | yad --progress \
+		--undecorated \
+		--center \
+		--width=500 \
+		--borders=36 \
+		--window-icon="applications-system" \
+		--title="Deploying COMMUNITY modules..." \
+		--progress-text="Deploying COMMUNITY modules..." \
+		--pulsate \
+		--auto-kill \
+		--auto-close \
+		--no-escape \
+		--no-buttons
+
+		run_user_modules | yad --progress \
+		--undecorated \
+		--center \
+		--width=500 \
+		--borders=36 \
+		--window-icon="applications-system" \
+		--title="Deploying USER modules..." \
+		--progress-text="Deploying USER modules..." \
+		--pulsate \
+		--auto-kill \
+		--auto-close \
+		--no-escape \
+		--no-buttons    
+	    
+	    nemo_emblems_and_colors
+
+	# Otherwise, deploy the arcos-linux-modules
+    else
+    	# Ensure the QRV/$CALLSIGN directory exists
+        mkdir -p /arcHIVE/QRV/${MYCALL}
+        
+        # If a newer version of the modules has been downloaded by another user, use the newer version
+        if [ -f ${ARCOS_DATA}/QRV/.arcos-linux-modules.tgz ]; then
+        	cd /arcHIVE/QRV/${MYCALL}
+        	tar -xzf ${ARCOS_DATA}/QRV/.arcos-linux-modules.tgz
+        	chmod -R a+x /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+        # Otherwise, deploy the shipped version
+        else
+        	cp -a ${ARCOS_DIR}/arcos-linux-modules /arcHIVE/QRV/${MYCALL}/
+        	chmod -R a+x /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+        fi
+        
+        # Get the current module version and commit
+        cd /arcHIVE/QRV/${MYCALL}/arcos-linux-modules
+    	BRANCH=$(git branch --show-current)
+        # Put the module info into /tmp/modules.log
+        if [ -f /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/.git/refs/heads/$BRANCH ]; then
+        	MODULES_VERSION="$(tail -n 1 /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/.git/refs/heads/$BRANCH | cut -c 1-7) [$BRANCH]"
+        	echo "${MODULES_VERSION}" > /tmp/modules.log
+    	fi
+    	# Enable all CORE modules 
+        for i in $(find /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE -maxdepth 2 -type f -name "*.sh" | grep "[0-9][0-9]_.*\.sh"); do mv "$i" /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/CORE/; done
+        
+        bash_history
+        
+        nemo_bookmarks
+		
+		non_persistent_boot
+		
+		handle_vara
+        
+        # Run the CORE modules
+        run_core_modules | yad --progress \
+		--undecorated \
+		--center \
+		--width=500 \
+		--borders=36 \
+		--window-icon="applications-system" \
+		--title="Deploying CORE modules for the first time..." \
+		--progress-text="Deploying CORE modules for the first time..." \
+		--pulsate \
+		--auto-kill \
+		--auto-close \
+		--no-escape \
+		--no-buttons
+	    
+	    # Ensure proper permissions in /opt/arcOS/bin
+	    sudo chmod -R +x /opt/arcOS/bin
+	    
+	    # Ensure the USER module directory exists
+	    mkdir -p /arcHIVE/QRV/${MYCALL}/arcos-linux-modules/USER
+        
+        nemo_emblems_and_colors
+    fi
+    # If a QRV profiles directory exists, set an emblem and pin it to the top of the file browser window in SAVED
+    if [ -d /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES ]; then
+        gio set /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES metadata::pinned-to-top true
+    	gio set -t stringv /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES metadata::emblems emblem-package
+        touch /arcHIVE/QRV/${MYCALL}/SAVED/PROFILES
+    fi
+    
+    # Save the current QRV profile name in /tmp/qrv-profile.log
+    echo "${QRV_PROFILE}" > /tmp/qrv-profile.log
+    
+    # Notify the user that the station is QRV
+	sleep 2
+	notify-send --icon=checkbox-qt "${MYCALL} is QRV!"
+
+# Otherwise, if cancel is selected, do nothing, and copy station-info from arcHIVE back into $HOME
+else
+	cp ${ARCOS_DATA}/.station-info $HOME/.station-info
+	# Re-enable the panel
+	gsettings set org.cinnamon panels-enabled "['1:0:bottom']"
+fi
+
+chmod -R a+x /arcHIVE
+
+# Send a welcome notification on first boot
+if [ "${CODENAME}" == "Xanadu" ]; then
+	RELEASE_WELCOME="This release is for development purposes only\!\n\nIssues can be reported on GitHub:\n\nhttps://github.com/kg4vdk/arcos-linux-modules/discussions/categories/xanadu-dev-releases\n\nClick to dismiss this message."
+else
+	RELEASE_WELCOME="A copy of the Field Manual is available in the home directory, and new users are encouraged to read it\!\n\nSupport is available on GitHub:\n\nhttps://github.com/kg4vdk/arcos-linux-modules/discussions/new?category=general-support\n\nClick to dismiss this message."
+fi
+
+if [ $COUNT = 0 ]; then
+	notify-send --urgency=critical --icon=dialog-information-symbolic "Welcome to arcOS ${CODENAME}!" "${RELEASE_WELCOME}"
+fi
+
+# Ask users to consider a donation every 10 boots/setups
+if ((COUNT % 10 == 0)) && [ $COUNT != 0 ]; then
+	notify-send --urgency=critical --icon=gnucash "Thanks for using arcOS!" "arcOS is FREE, but it isn't CHEAP\!\n\nIf you enjoy using arcOS, please consider making a donation if you are able. It's a great way to show your appreciation and helps keep the project moving forward. Visit the website and click on 'Donate'.\n\nhttps://arcos-linux.com"
+fi

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PACKAGES="$1"
+HASH="$(echo "$(date) ${PACKAGES}" | md5sum | awk -F " " '{print $1}')"
+DOWNLOAD_DIR="/packages-${HASH}"
+PACKAGE_DIR="/arcHIVE/QRV/.packages"
+
+sudo mkdir -p ${DOWNLOAD_DIR}/partial
+
+sudo apt update
+
+download_pkgs () {
+sudo apt-get -y --download-only \
+-o dir::cache="${DOWNLOAD_DIR}" \
+-o Debug::NoLocking=1 \
+--reinstall \
+install \
+"${PACKAGES}"
+}
+
+if download_pkgs; then
+	mkdir -p ${PACKAGE_DIR}/packages-${HASH}
+	cp ${DOWNLOAD_DIR}/archives/*.deb ${PACKAGE_DIR}/packages-${HASH}/
+fi
+
+sudo rm -rf ${DOWNLOAD_DIR}

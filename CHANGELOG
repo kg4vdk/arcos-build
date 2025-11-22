@@ -1,0 +1,234 @@
+"Xanadu" 22.2.0 1115 --> "Xanadu" 22.2.0 1120
+built from local-pkgs "1120"
+fix pat config for varahf to use digirig
+remove apt upgrade during build (i'm back and forth on this)
+remove deb-src, mozilla, and piaware repos/keys at end of build
+change offline-mapps hierarchy to be better organized 
+update viking's default map to OSM mapnik, and add a module to link the maps to skyaware
+Fix "info" fields in flamp and js8call since we no longer use a name or city/state in station-setup
+
+"Xanadu" 22.2.0 1004 --> "Xanadu" 22.2.0 1115
+clean-up station-setup code
+add VARA enable/disable field to station-setup
+webapp-ify piaware
+include markdown
+markdown-ify the field manual, and add keyboard shortcut (F1) to open the manual
+include html manual in /opt/arcOS
+built from local-pkgs "1114"
+
+"Crater-Lake" 22.1.2-1 --> "Xanadu" 22.2.0 1004
+Move to 22.2 "Zara" base
+*apt-get upgrade during build
+drop custom gray sticky color
+version bumps: pat 0.19.1, yaac 1.0-beta216, veracrypt 1.26.24, varafm 4.3.9, paracon 1.2.0
+remove key requirement for VARA
+fix for station-setup pre-populating when booted without persistent storage
+add sha256sum and compatibility with mint-iso-verify
+import ISO signing key
+add ability to cleanly bypass station setup (CTL+ALT+DEL)
+include localsend 1.17.0
+move paracon into iso
+include shotcut
+include scdaemon
+add noatime option to /arcHIVE mount
+drop "set pat wlnk password" from pat desktop actions (handled in pat configure gui)
+modify cinnamon-screensaver to allow locking a live session (user can generate password via `set-password`)
+include python3-pip, pipx
+include openssh-server with key based authentication only (must be configured by user)
+add ssh module to make $HOME/.ssh persistent
+add emergency shutdown via udev rule if /arcHIIVE is removed
+add zbar-tools
+enable screen locking on laptop lid close
+persistify Downloads when station-setup is bypassed
+sneakily inform users that encrypted arcHIVE is supported, but not offered automatically
+  user must manually create LUKS encrypted exFAT partition #3 with label "arcHIVE" on boot device
+
+"Xanadu" 22.1.0713" --> Crater-Lake" 22.1.2-1
+No change
+
+"Xanadu" 22.1.0706 --> "Xanadu" 22.1.0713"
+Notable changes:
+Built with local-packages "250713"
+Build process streamlined (nobody but me cares)
+Build process allows for using a local package archive...
+allowing for package "freezes" and offline builds
+VARA documentaiton and terms of use from the developer included in VARA module
+New modules included in ISO
+Enable VARA in RAM/ISO/Ventoy boot sessions
+QRV Report added as CORE module
+Fix backup module timestamp discrepancy
+Move backup-operator to BACKUP-STATUS module for easier maintenance if/when needed
+Improve progress/activity bar for "Update QRV Modules"
+Include persistence for winlink standard forms and compatibility with "offline" builds
+Remove misfiring warning about being RAM booted with less than 16GB
+Reword grub entries
+
+"Crater-Lake" 22.1.2 --> "Xanadu" 22.1.0706
+Notable changes:
+Set default VNC passwd earlier in station-setup process, so it can be changed by a later running user module
+Modify main conky to strip "arcOS-" from the ISO version for better legibility with longer names
+Add text to announce core/community/user modules when deploying
+Enable functionality without persistence via bindfs
+Simplify default bash prompt and show active callsign (bash_history is per callsign)
+"Disable" apt upgrade (and related commands) which are pointless in a live OS
+Gracefully handle empty callsign/name/grid by setting up a N0CALL user
+Bookmark /arcHIVE in "non-persistent" mode
+Added Backup Status core module
+Provide additional information when restoring a backup containing conflicting ISO/Backup module versions
+Add option to enable VARA for any callsign if booted to RAM (16G RAM reccomended)
+Add ability to auto-play "arcOS-announce/challenge.mp3" if present in the exFAT /arcHIVE (for benchmarking and training use)
+Add "QRV Report" script
+add aliases for qrv (qrv-report), cdd (cd Desktop), cdm (de /mdedia/user) cdq (cd to QRV), cdo (cd to /opt/arcOS), z (zsh)
+Install the 24.04 HWE kernel...will track with future releases. (6.11.0.-29)
+Add ability to auto-start screen recording via .screen-record in /arcHIVE
+Prevent sticky notes from starting with notes on the screen.
+Allow boot to RAM
+Xanadu ISO status check enabled
+Add espeak espeak-ng and festival
+Add default zshrc
+
+"Bristlecone" 22.1.1 --> "Crater-Lake" 22.1.2
+Notable changes:
+Remove yt-dlp, hypnotix, and htop
+Include jq and ffmpeg
+Notify when restore-operator fails if no backup_info file is in the backup
+Fix backup-operator incorrectly adds PACKAGES and KEYS on their respective lines in backup_info
+Add $HOME/.bin to PATH if it exists (for possible module use)
+
+"Acadia" 22.1.0-1 --> "Bristlecone" 22.1.1
+Notable changes:
+Add ability to run user and community modules before core modules restart Cinnamon
+Update launcher descriptions
+Ensure running paracon, sticky and viking instances are killed at Station Setup time
+Improve backup/restore process
+Include user modules as a separate tar archive when creating an operator backup
+Fix backup-operator notifying of completion on cancel
+Rename ARCOS-DATA to arcHIVE
+Include sticky notes
+Add gray sticky note color
+Add notification during VARA install to leave the default values in place
+
+"Acadia" 22.1.0 --> "Acadia" 22.1.0-1
+Notable changes:
+Install persistent packages when restoring an operator
+Remove "Linux" from arcOS branding in boot files
+Add CORE module for keyring persistence
+Add color and emblem to arcos-linux-modules directory
+Include imagemagick
+Include viking and core module for persistence (maps in OFFLINE-MAPS)
+Include paracon
+Add ISO update status indicator in conky
+
+"India" 21.3.0 --> "Acadia" 22.1.0
+Notable changes:
+MAJOR RELEASE CHANGE TO MINT 22.1
+Add operator selection before Station Setup to fix QRV profiles listing for wrong operator
+Hide panel until CALLSIGN is QRV
+Drop HamRS from included software, handled in QRV module with persistence if user downloads AppImage
+Add transparency to terminal and remove menubar/scrollbar
+Include qrencode
+Include gpredict
+Include qsstv and QRV module
+Include veracrypt
+Include kleopatra
+Add mmcblk compatibility to wipe-arcos script
+Add -p to start-direwolf when DigiRig is connected
+Add persistence to user managed applications pinned to panel
+Include ax25-tools and ax25-apps
+Bookmark the callsign directory and the QRV directory to minimize clicks needed to navigate
+Add user specific calendar persistence (QRV Module)
+Hold FLDIGI version at 4.1.20 (source built), due to issues with 4.2.03 from Ubuntu
+YAAC version bump to beta-209
+WSJTX version bump to 2.7.0 (deb)
+Remove non-functioning Community modules
+Drop LUKS encryption option for ARCOS-DATA
+Include cmake
+Add persistent software functionality via download-packages script
+Re-structure Wallpaper directory
+Add custom label styling for aircraft in ADSB
+Disable CTL+ALT+BKSP
+Improve wipe-arcos-install (/dev/zero > 1st 512 bytes)
+Add backup/restore operator functionality
+Custom login/logout sounds
+
+"Hotel" 21.3.1 --> "India" 21.3.0
+Notable changes:
+Fix VARA module running when Wine has been disabled
+Configure PAT WLNK webapp to open links in a new window, and to use a private browser window
+Add optional LUKS encryption to ARCOS-DATA
+Add ability to bypass station setup using /ARCOS-DATA/.autoconfig
+Fix persistent storage configuration when booting from SD card
+Replace Firefox with Firefox ESR
+Update ardopcf version to 1.0.4.1.3
+Update YAAC version to 1.0-beta204
+Update HAMRS version to hamrs-pro-2.21.4
+Add Thunderbird email client
+Add Audacity
+Reduce default number of workspaces to 2
+
+"Hotel" 21.3.0 --> 21.3.1
+Notable changes:
+Added Field Manual
+Wording of notifications and "locked" icon status to reflect correctly whether Wine + VARA is functional
+Consolidate VARA modems into single module to save space
+Rename VARA "LICENSE" to REGISTRATION_CODE to match VARA terminology
+Add support for digirig-rx/digirig-tx in VARA modems
+Change desktop title for VARA to VARA HF to reduce confusion bewtween HF and FM
+If no GPS, show manually entered gridsquare in Station Information (conky)
+
+"Golf" --> "Hotel"
+Notable changes:
+Upgrade YAAC to v 1.0-beta203
+added VARA-FM Community Module
+wine + winetricks installed by default
+Validation process to enable Wine + VARA
+include nemo-seahorse
+add download-keys
+add set-pat-password desktop action
+add IRC support via Hexchat
+
+Fixed:
+update-modules re-enables active Community Modules after updating
+clean up most shutdown "warning" messages on console
+
+----------
+
+"Foxtrot" --> "Golf"
+
+Notable changes:
+added changelog
+ARCOS-DATA now mounts to /ARCOS-DATA
+no reboot required after persistence storage is setup on first boot
+added user to `tty` and `audio` groups
+added indicator icon in Conky for GPS time source
+replace Mint branding with arcOS
+added OS notification when ping received in fldigi
+added Atkinson Hyperlegible as default font
+added QRV Profiles
+removed unused themes/icons
+added notification if persistence setup fails
+added donation pop-up every 10 times Station Setup is run
+added various aesthetic improvements
+update-modules keeps a copy of the repo locally to deploy to secondary users
+added SOUND module to save/restore sound configuration based on machine serial number
+added ARDOP and DIREWOLF modules
+added timestamp to APRS packets
+removed operator name as APRS beacon text
+added https://arcos-linux.com as default APRS beacon text
+added wipe-arcos-install to prepare internal disk installations for upgrade/reinstall
+added VNC for remote desktop sharing
+re-added uptime and boot device to conky
+add branch name to modules version in conky
+added Warpinator group "arcOS" and use compression if available
+added ability to save HAMRS config/logs
+added ADSB to ISO
+added QRV Profile to conky
+removed thunderbird
+
+Fixed:
+update-modules could delete USER modules
+Pat, FLDigi, JS8Call, and WSJT-X files were not properly unlinked and could be deleted
+added "-p" to /etc/default/gpsd to hopefully fix SOME uBlox 7 GPS devices sending empty lat/lon strings
+set DigiRig capture volume to reasonable level (~30%) by default if connected
+.bash_history is now per callsign, instead of global
+

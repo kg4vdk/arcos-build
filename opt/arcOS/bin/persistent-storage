@@ -1,0 +1,161 @@
+#!/bin/bash
+
+BOOT_PARTITION=$(df -h | grep cdrom | awk -F " " '{print $1}')
+if [[ $BOOT_PARTITION == *"nvme"* ]]; then
+	DISK=${BOOT_PARTITION%??}
+	EXFAT_PARTITION="p3"
+elif [[ $BOOT_PARTITION == *"mmcblk"* ]]; then
+    DISK=${BOOT_PARTITION%??}
+	EXFAT_PARTITION="p3"
+else
+	DISK=${BOOT_PARTITION%?}
+	EXFAT_PARTITION="3"
+fi
+
+encrypt_persistence_ask () {
+ENCRYPT=$(yad --title="Encrypt Persistent Storage?" \
+--undecorated \
+--form \
+--window-icon="dialog-question" \
+--form --borders=36 \
+--focus-field=1 \
+--center \
+--fixed \
+--text-align=center \
+--field="Encrypt Persistent Storage?:CB" No\!Yes  \
+--field="\nNOTE:\nLUKS encryption may hinder persistent\nstorage access from Win/Mac systems!\n:LBL" \
+--buttons-layout=center \
+--button="Proceed")
+
+ENCRYPT=$(echo ${ENCRYPT} | awk -F "|" '{print $1}')
+}
+
+luks_password_ask () {
+PASS=$(yad --title="Enter Persistent Storage Password" \
+--undecorated \
+--window-icon="gcr-password" \
+--form --borders=36 \
+--center \
+--fixed \
+--text="Enter Persistent Storage Password:\n" \
+--entry \
+--hide-text \
+--no-buttons)
+
+notify-send --icon=system-lock-screen "Decrypting Persistent Storage..."
+if ! sudo cryptsetup luksOpen ${DISK}${EXFAT_PARTITION} arcHIVE <<< $(echo "${PASS}"); then
+    notify-send --icon=error "Persistent Storage" "Incorrect password.\n\nPlease try again."
+fi
+}
+
+luks_password_set () {
+SETPASS=$(yad --title="Set Persistent Storage Password" \
+--undecorated \
+--form \
+--window-icon="gcr-key" \
+--form --borders=36 \
+--center \
+--fixed \
+--text-align=center \
+--text="Set Persistent Storage Password:\n" \
+--field="Password" \
+--field="Confirm Password" \
+--button="Set Password")
+
+PASS1=$(echo "${SETPASS}" | awk -F "|" '{print $1}')
+PASS2=$(echo "${SETPASS}" | awk -F "|" '{print $2}')
+
+if [[ "${PASS1}" != "" ]] && [[ "${PASS2}" != "" ]] && [[ "${#PASS1}" -ge 8 ]] && [[ "${PASS1}" = "${PASS2}" ]]; then
+	PASS="${PASS1}"
+else
+	notify-send --icon=error "Persistent Storage" "Passwords do not match, were left empty, or are shorter than 8 characters.\n\nPlease try again."
+fi
+}
+
+persistent_storage () {
+sudo fdisk --wipe=never -t dos ${DISK} <<EOF
+n
+
+
+
+
+t
+
+07
+w
+EOF
+
+if [[ "${ENCRYPT}" = "Yes" ]]; then
+    while [ -z $PASS ]; do
+       luks_password_set
+    done
+    notify-send --icon=gcr-key "Creating Encrypted Persistent Storage..." "Please be patient."
+    if sudo cryptsetup luksDump ${DISK}${EXFAT_PARTITION}; then
+        sudo cryptsetup erase ${DISK}${EXFAT_PARTITION}
+        sudo wipefs -a ${DISK}${EXFAT_PARTITION}
+    fi
+    sudo cryptsetup luksFormat --label arcHIVE --type luks2 ${DISK}${EXFAT_PARTITION} <<< $(echo "${PASS}")
+    sudo cryptsetup luksOpen ${DISK}${EXFAT_PARTITION} arcHIVE <<< $(echo "${PASS}")
+    sudo mkfs.exfat -L arcHIVE /dev/mapper/arcHIVE
+else
+    if sudo cryptsetup luksDump ${DISK}${EXFAT_PARTITION}; then
+        sudo cryptsetup erase ${DISK}${EXFAT_PARTITION}
+        sudo wipefs -a ${DISK}${EXFAT_PARTITION}
+    fi
+    sudo mkfs.exfat -L arcHIVE ${DISK}${EXFAT_PARTITION}
+fi
+}
+
+if [ ! -e ${DISK}${EXFAT_PARTITION} ]; then
+    #encrypt_persistence_ask
+    ENCRYPT="No"
+	if persistent_storage; then
+		sudo mkdir -p /arcHIVE
+		if sudo cryptsetup luksDump ${DISK}${EXFAT_PARTITION}; then
+			sudo partprobe ${DISK}
+    		sudo mount -o noatime,uid=1000,gid=1000,x-gvfs-show /dev/mapper/arcHIVE /arcHIVE
+	    else
+	    	sudo partprobe ${DISK}
+	        sudo mount -o noatime,uid=1000,gid=1000,x-gvfs-show ${DISK}${EXFAT_PARTITION} /arcHIVE
+	    fi
+	else
+		ARCHIVE="/arcHIVE"
+		ARCHIVE_BIND="/bind_arcHIVE"
+		# Cleanup
+		sudo umount -l ${ARCHIVE}
+		if [ -d ${ARCHIVE} ]; then
+			sudo rm -rf ${ARCHIVE}
+		fi
+		# Create temporary arcHIVE
+		sudo mkdir ${ARCHIVE}
+		sudo mkdir ${ARCHIVE_BIND}
+		sudo chown -R user:user ${ARCHIVE}
+		sudo chown -R user:user ${ARCHIVE_BIND}
+		if bindfs --create-with-perms=755 ${ARCHIVE_BIND} ${ARCHIVE}; then
+			sleep 3
+			notify-send --urgency=critical --icon="dialog-warning" "Operating without persistence!" "/arcHIVE exists in RAM only\!\n\nClick to dismiss this message."
+		else
+			notify-send --urgency=critical --icon="error" "Unable to configure persistent storage!" "Something has gone seriously wrong\!\n\nClick to dismiss this message."
+		fi
+	fi
+else
+	if [ ! -d /arcHIVE ]; then
+		sudo mkdir -p /arcHIVE
+		if sudo cryptsetup luksDump ${DISK}${EXFAT_PARTITION}; then
+		    if ! df -h /arcHIVE | grep "/dev/mapper/arcHIVE"; then
+			    sudo umount ${DISK}${EXFAT_PARTITION}
+			    while [ ! -e /dev/mapper/arcHIVE ]; do
+			        luks_password_ask
+			    done
+			    sudo partprobe ${DISK}
+			    sudo mount -o noatime,uid=1000,gid=1000,x-gvfs-show /dev/mapper/arcHIVE /arcHIVE
+	        fi
+	    else
+	        if ! df -h /arcHIVE | grep "${DISK}${EXFAT_PARTITION}"; then
+	            sudo umount ${DISK}${EXFAT_PARTITION}
+	            sudo partprobe ${DISK}
+			    sudo mount -o noatime,uid=1000,gid=1000,x-gvfs-show ${DISK}${EXFAT_PARTITION} /arcHIVE
+	        fi
+	    fi
+	fi
+fi

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+BOOT_PARTITION=$(df -h | grep cdrom | awk -F " " '{print $1}')
+if [[ $BOOT_PARTITION == *"nvme"* ]]; then
+	DISK=${BOOT_PARTITION%??}
+	ISO_PARTITION="p1"
+	EFI_PARTITION="p2"
+	EXFAT_PARTITION="p3"
+elif [[ $BOOT_PARTITION == *"mmcblk"* ]]; then
+    DISK=${BOOT_PARTITION%??}
+	ISO_PARTITION="p1"
+	EFI_PARTITION="p2"
+	EXFAT_PARTITION="p3"
+else
+	DISK=${BOOT_PARTITION%?}
+	ISO_PARTITION="1"
+	EFI_PARTITION="2"
+	EXFAT_PARTITION="3"
+fi
+
+wipe_arcos () {
+
+sudo wipefs --all --force --types iso9660 ${DISK}
+sudo wipefs --all --force --types iso9660 ${DISK}${ISO_PARTITION}
+sudo wipefs --all --force --types vfat ${DISK}${EFI_PARTITION}
+#sudo umount -f ${DISK}${EXFAT_PARTITION}
+#sudo exfatlabel ${DISK}${EXFAT_PARTITION} ARCOS-OLD
+#sudo mkdir -p /media/user/ARCOS-OLD
+#sudo mount ${DISK}${EXFAT_PARTITION} /media/user/ARCOS-OLD
+sudo dd if=/dev/zero of=${DISK} bs=512 count=1
+
+}
+
+if [ "${BOOT_PARTITION}" != "/dev/shm" ] && [ "${BOOT_PARTITION}" != "/dev/sr0" ] && [ "${BOOT_PARTITION}" != "/dev/mapper/ventoy" ]; then
+	WIPE_PROMPT=$(yad --title="Wipe arcOS..." \
+	--window-icon="dialog-warning" \
+	--form --borders=36 \
+	--center \
+	--fixed \
+	--image="/usr/share/icons/Mint-Y/status/96/dialog-warning.png" \
+	--field="This action will render the arcOS installation on ${DISK} UNBOOTABLE!\n\nAll data on ${DISK} will be DESTROYED!\n\nEnsure all important files are backed up!\n\nThe system will shut down after this action is complete!\n":LBL "" \
+	--field="":LBL "" \
+	--field=" I have a backup of important files, and I want to wipe arcOS.":CHK \
+	--buttons-layout=end)
+else
+	WIPE_PROMPT="FALSE"
+fi
+
+if [[ "$WIPE_PROMPT" == *"TRUE"* ]]; then
+	if wipe_arcos; then
+		notify-send --icon=dialog-warning "Wipe of arcOS Succeeded!" "System will shut down in 5 seconds..."
+		sleep 5
+		sudo poweroff
+	else
+		notify-send --icon=error "Wipe of arcOS Failed!"
+	fi
+else
+	notify-send --icon=dialog-warning "Unable to wipe ${BOOT_PARTITION}"
+fi
+

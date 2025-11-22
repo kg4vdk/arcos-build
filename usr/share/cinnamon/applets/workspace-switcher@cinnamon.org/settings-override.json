@@ -1,0 +1,6 @@
+{
+    "display-type" : {
+        "default" : "buttons",
+        "override-props" : true
+    }
+}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FLMSG
+GenericName=FLMSG
+Comment=NBEMS Messaging
+Exec=flmsg -na flmsg
+Icon=flmsg-custom-icon
+Terminal=false
+Type=Application

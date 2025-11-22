@@ -1,0 +1,12 @@
+#!/bin/bash
+
+source $HOME/.station-info
+
+SAVE_DIR="/arcHIVE/QRV/${MYCALL}/SAVED/PARACON"
+
+if ! pidof direwolf; then
+	gtk-launch start-direwolf.desktop &
+fi
+
+gnome-terminal --title="PARACON" --class=paracon -- python3 /usr/local/bin/paracon_1.2.0.pyz --config ${SAVE_DIR}/paracon.cfg --logdir ${SAVE_DIR}/logs &
+

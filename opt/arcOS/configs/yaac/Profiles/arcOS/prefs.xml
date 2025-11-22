@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE map SYSTEM "http://java.sun.com/dtd/preferences.dtd">
+<map MAP_XML_VERSION="1.0">
+  <entry key="AutoCenter" value="true"/>
+  <entry key="Center" value="QEMAAAAAAADAV8AAAAAAAA=="/>
+  <entry key="LatLonFormat" value="DD_DDDDDD"/>
+  <entry key="LogDir" value="/home/user/.YAAC/logdir"/>
+  <entry key="TileDir" value="/home/user/.YAAC/tiledir"/>
+  <entry key="YAAC.windowsize.height" value="728"/>
+  <entry key="YAAC.windowsize.width" value="1024"/>
+  <entry key="Zoom" value="600000.0"/>
+  <entry key="autoLoadOsmTiles" value="false"/>
+</map>

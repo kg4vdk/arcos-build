@@ -1,0 +1,5 @@
+{
+	"transparency-type" : {
+		"default" : "panel-semi-transparent",
+		"override-props" : true
+}

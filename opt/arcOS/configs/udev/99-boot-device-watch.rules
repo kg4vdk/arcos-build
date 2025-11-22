@@ -1,0 +1,1 @@
+ACTION=="remove", ENV{ID_FS_UUID}=="XXXARCHIVEUUIDXXX", RUN+="/opt/arcOS/bin/emergency-shutdown"

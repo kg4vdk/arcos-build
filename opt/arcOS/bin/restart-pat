@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo systemctl restart pat@user.service 
+notify-send --icon=pat-custom-icon "PAT WLNK" "Service restarted!"

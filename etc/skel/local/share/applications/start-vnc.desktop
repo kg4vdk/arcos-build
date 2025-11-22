@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Desktop Sharing
+GenericName=Desktop Sharing
+Comment=Enable/Disable Desktop Sharing
+Exec=start-vnc
+Icon=virt-viewer
+Terminal=false
+Type=Application

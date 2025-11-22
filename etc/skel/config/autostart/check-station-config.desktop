@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Check For Station Config
+GenericName=Check For Station Config
+Comment=Check For Station Config
+Exec=check-station-config
+Icon=dialog-question
+Terminal=false
+Type=Application
+X-GNOME-Autostart-Delay=5

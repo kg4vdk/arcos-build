@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ARCOS_DATA=/arcHIVE
+
+# Restart Cinnamon (workaround for timing?)
+cinnamon --replace &
+
+if [ ! -f $HOME/.station-info ]; then
+    if [ -f ${ARCOS_DATA}/.station-info ]; then
+        cp ${ARCOS_DATA}/.station-info $HOME/
+    fi
+fi
+station-setup

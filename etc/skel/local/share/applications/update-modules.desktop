@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Update QRV Modules
+GenericName=Update QRV Modules
+Comment=Download current arcOS modules from Github
+Exec=update-modules
+Icon=update-manager
+Terminal=false
+Type=Application

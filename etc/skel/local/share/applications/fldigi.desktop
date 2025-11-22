@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=FLDIGI
+GenericName=FLDIGI
+Comment=Amateur Radio Sound Card Communications
+Exec=sh -c "amixer -c 5 sset 'Auto Gain Control' mute > /dev/null 2>&1; killall direwolf > /dev/null 2>&1; killall ardopcf > /dev/null 2>&1; fldigi"
+Icon=fldigi-custom-icon
+Terminal=false
+Type=Application
+Actions=save
+
+[Desktop Action save]
+Name=SAVE FL-SUITE CONFIG
+Exec=/opt/arcOS/bin/save-fl-suite.sh

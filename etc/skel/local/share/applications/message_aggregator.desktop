@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=WSJTX Message Aggregator
+Comment=WSJTX Message Aggregator
+Exec=message_aggregator
+Icon=wsjtx-custom-icon
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+StartupNotify=true

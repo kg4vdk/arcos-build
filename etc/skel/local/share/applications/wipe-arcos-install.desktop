@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Wipe arcOS Install
+GenericName=Wipe arcOS Install
+Comment=Wipe arcOS Install from boot media
+Exec=wipe-arcos-install
+Icon=dialog-warning
+Terminal=false
+Type=Application

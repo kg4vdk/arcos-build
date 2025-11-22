@@ -1,0 +1,3 @@
+#!/bin/sh
+MONITOR_DIR="$1"
+inotifywait -m -r -e create --format '%w%f' "${MONITOR_DIR}"
