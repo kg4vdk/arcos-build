@@ -1,0 +1,4 @@
+[submodule "opt/arcOS/arcos-linux-modules"]
+	path = opt/arcOS/arcos-linux-modules
+	url = https://github.com/kg4vdk/arcos-linux-modules
+	branch = xanadu
