@@ -13,7 +13,7 @@ CODENAME="Xanadu"
 BUILD_HOST="arcOS.local"
 BUILD_USER="user"
 
-SETUP_DIR=/root/setup
+SETUP_DIR=/root/arcos-build
 ARCOS_DIR=/opt/arcOS
 
 #ARCOS_DEV=/media/ARCOS-DEV
