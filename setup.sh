@@ -8,8 +8,6 @@ CODENAME="Xanadu"
 #RELEASE="22.2.0"
 #CODENAME="Denali"
 
-#BUILD_HOST="thinkcentre.local"
-#BUILD_USER="fisherm"
 BUILD_HOST="arcOS.local"
 BUILD_USER="user"
 
