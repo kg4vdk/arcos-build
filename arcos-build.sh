@@ -724,6 +724,7 @@ fi
 
 cleanup () {
 echo -e "${CYN}### CLEANUP ###${RST}" >&2
+ssh -i ${SSH_KEY} ${BUILD_USER}@${BUILD_HOST} "rm $HOME/.ssh/authorized_build_keys"
 sudo rm /etc/apt/sources.list.d/deb-src.list
 sudo rm /etc/apt/sources.list.d/mozillateam-ppa-noble.list
 sudo rm /etc/apt/sources.list.d/abcd567a.list
