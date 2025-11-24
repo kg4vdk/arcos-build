@@ -18,7 +18,7 @@ ARCOS_DIR=/opt/arcOS
 ARCOS_DEV=/media/user/ARCOS-DEV
 
 # Build directory
-BUILD_DIR=${ARCOS_DEV}/build
+BUILD_DIR=${ARCOS_DEV}/cubic-build
 
 # Output colors
 BLK='\033[01;30m'
