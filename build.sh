@@ -243,7 +243,7 @@ firefox-esr --version >&2
 
 arcos_files () {
 echo -e "${CYN}### COPY ARCOS FILES ###${RST}" >&2
-MODULES=${SETUP_DIR}/opt/arcOS/arcos-linux-modules
+MODULES=${SETUP_DIR}/arcos-linux-modules
 BACKGROUNDS=${SETUP_DIR}/opt/arcOS/backgrounds
 BIN=${SETUP_DIR}/opt/arcOS/bin
 CONFIGS=${SETUP_DIR}/opt/arcOS/configs
