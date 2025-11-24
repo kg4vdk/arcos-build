@@ -19,7 +19,7 @@ XANADU_RELEASE="22.2.0-${DATE}"
 # For Xanadu builds, the first argument
 # is available as an "Alpha" designator
 # for same-day re-builds
-ALPHA="$1"
+read -p "Enter a single (capitalized) letter as a designator for Xanadu builds: " ALPHA
 
 # If no "Alpha" designator, assume stable build
 if [ -z "${ALPHA}" ]; then
