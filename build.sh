@@ -730,8 +730,7 @@ sudo rm /etc/apt/sources.list.d/abcd567a.list
 sudo rm /etc/apt/keyrings/mozillateam-ppa-noble.gpg
 sudo rm /etc/apt/keyrings/abcd567a-key.gpg
 sudo apt-get autoremove -y
-sudo rm -rf /root/setup
-sudo rm -rf /root/arcOS*
+sudo rm -rf /root/arcos-build
 sudo rm -rf /root/.ssh
 sudo rm -rf /root/.config/pat
 sudo rm -rf /root/.local/share/pat
