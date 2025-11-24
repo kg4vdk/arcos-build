@@ -249,7 +249,7 @@ BIN=${SETUP_DIR}/opt/arcOS/bin
 CONFIGS=${SETUP_DIR}/opt/arcOS/configs
 IMAGES=${SETUP_DIR}/opt/arcOS/images
 CHGLOG=${SETUP_DIR}/CHANGELOG
-MANUAL=${SETUP_DIR}/opt/arcOS/arcos-linux-modules/CORE/MANUAL/arcOS-Field-Manual.html
+MANUAL=${SETUP_DIR}/arcos-linux-modules/CORE/MANUAL/arcOS-Field-Manual.html
 sudo mkdir -p ${ARCOS_DIR}/{arcos-linux-modules,backgrounds,bin,configs,images}
 sudo cp -r ${MODULES} ${ARCOS_DIR}/
 sudo cp -r ${BACKGROUNDS} ${ARCOS_DIR}/
