@@ -33,4 +33,6 @@ else
 fi
 
 # Setup temporary SSH key for build
-ssh-keygen -f /tmp/arcos-build-key -P "" -q
+mkdir -p ${BUILD_REPO}/ssh
+ssh-keygen -f ${BUILD_REPO}/ssh/arcos-build-key -P "" -q
+cat ${BUILD_REPO}/ssh/arcos-build-key.pub >> $HOME/.ssh/authorized_build_keys

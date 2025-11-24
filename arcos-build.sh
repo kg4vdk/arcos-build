@@ -96,8 +96,8 @@ cleanup
 
 ssh_keys () {
 echo -e "${CYN}### ENABLE SSH KEYS ###${RST}" >&2
-SSH_KEY="/root/.ssh/arcOS-build-key"
-sudo cp ${SETUP_DIR}/ssh/arcOS-build-key ${SSH_KEY}
+SSH_KEY="/root/.ssh/arcos-build-key"
+sudo cp ${SETUP_DIR}/ssh/arcos-build-key ${SSH_KEY}
 sudo chmod 600 ${SSH_KEY}
 }
 
