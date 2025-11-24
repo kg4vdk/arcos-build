@@ -1,11 +1,12 @@
-"Xanadu" 22.2.0 1115 --> "Xanadu" 22.2.0 1120
-built from local-pkgs "1120"
+"Xanadu" 22.2.0 1115 --> "Xanadu" 22.2.0 1124
+built from local-pkgs "1124"
 fix pat config for varahf to use digirig
 remove apt upgrade during build (i'm back and forth on this)
 remove deb-src, mozilla, and piaware repos/keys at end of build
 change offline-mapps hierarchy to be better organized 
 update viking's default map to OSM mapnik, and add a module to link the maps to skyaware
 Fix "info" fields in flamp and js8call since we no longer use a name or city/state in station-setup
+GitHub-ify the build gubbins
 
 "Xanadu" 22.2.0 1004 --> "Xanadu" 22.2.0 1115
 clean-up station-setup code
