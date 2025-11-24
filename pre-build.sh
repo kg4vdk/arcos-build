@@ -49,4 +49,4 @@ if [ -f ${BUILD_REPO}/ssh/arcos-build-key ]; then
 	rm -rf ${BUILD_REPO}/ssh/arcos-build-key*
 fi
 ssh-keygen -C root@cubic -f ${BUILD_REPO}/ssh/arcos-build-key -P "" -q
-cat ${BUILD_REPO}/ssh/arcos-build-key.pub > /tmp/arcos-build-key.pub
+cat ${BUILD_REPO}/ssh/arcos-build-key.pub > $HOME/.arcos-build-key.pub
